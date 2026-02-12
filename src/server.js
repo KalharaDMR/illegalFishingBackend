@@ -10,6 +10,7 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
+/*
 const User = require("./models/user");
 const bcrypt = require("bcryptjs");
 
@@ -31,3 +32,4 @@ const seedAdmin = async () => {
 
 seedAdmin();
 
+*/
