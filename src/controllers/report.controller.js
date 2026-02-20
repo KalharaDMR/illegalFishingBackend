@@ -1,22 +1,17 @@
-const Report = require("../models/IllegalReport");
+const IllegalReport = require("../models/IllegalReport");
 
 exports.createReport = async (req, res) => {
   try {
-    const {
-      reportDate,
-      reportTime,
-      location,
-      latitude,
-      longitude,
-      description,
-    } = req.body;
+    // ✅ reporter is automatically populated from auth middleware
+    const reporterId = req.user.userId // decoded token should have id
 
-    const evidenceFiles = req.files
-      ? req.files.map((file) => file.filename)
-      : [];
+    const { reportDate, reportTime, location, latitude, longitude, description } = req.body;
 
-    const report = await Report.create({
-      reporter: req.user.id,
+    // Map uploaded files to paths
+    const evidenceFiles = req.files ? req.files.map((file) => file.path) : [];
+
+    const newReport = new IllegalReport({
+      reporter: reporterId,
       reportDate,
       reportTime,
       location,
@@ -26,35 +21,11 @@ exports.createReport = async (req, res) => {
       evidenceFiles,
     });
 
-    res.status(201).json({ message: "Report submitted", report });
+    await newReport.save();
+
+    res.status(201).json({ message: "Report submitted successfully", report: newReport });
   } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// ADMIN
-exports.getAllReports = async (req, res) => {
-  try {
-    const reports = await Report.find().populate("reporter", "name email");
-    res.json(reports);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// ADMIN
-exports.updateReportStatus = async (req, res) => {
-  try {
-    const report = await Report.findByIdAndUpdate(
-      req.params.id,
-      { status: req.body.status },
-      { new: true }
-    );
-
-    if (!report) return res.status(404).json({ message: "Report not found" });
-
-    res.json(report);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error(error);
+    res.status(500).json({ message: "Failed to submit report", error: error.message });
   }
 };
