@@ -24,7 +24,7 @@ app.use("/uploads", express.static("src/uploads"));
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 
-app.use('/api/species', require('./routes/species.routes'));
+app.use('/api/species', require('./routes/Zoologist.routes'));
 
 
 module.exports = app;

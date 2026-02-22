@@ -10,7 +10,7 @@ const {
 } = require('../controllers/species.controller');
 const auth = require("../middlewares/auth.middleware")
 const role= require("../middlewares/role.middleware")
-const { upload } = require('../middleware/upload.middleware');
+const { upload,handleMulterError } = require('../middlewares/upload.middleware');
 
 // Public routes
 router.get('/',auth,role("ZOOLOGIST"), getAllEndangeredSpeciesEntryByPagination);
@@ -18,10 +18,10 @@ router.get('/:id',auth,role("ZOOLOGIST"), getEndangeredSpeciesDetailsById);
 router.post('/nearby',auth,role("ZOOLOGIST"), getNearbyEndangeredSpeciesPlaces);
 
 // Create species (with image upload and validation)
-router.post('/',auth,role("ZOOLOGIST"), upload.single('evidence'),  createEndaneredSpeciesEntry);
+router.post('/',auth,role("ZOOLOGIST"), upload.single('evidence'),handleMulterError, createEndaneredSpeciesEntry);
 
 // Update species (with optional image upload)
-router.put('/:id',auth,role("ZOOLOGIST"), upload.single('evidence'), updateEndangeredSpeciesEntry);
+router.put('/:id',auth,role("ZOOLOGIST"), upload.single('evidence'), handleMulterError, updateEndangeredSpeciesEntry);
 
 // Delete species
 router.delete('/:id',auth,role("ZOOLOGIST"), deleteEndangeredSpeciesEntry);
