@@ -6,6 +6,7 @@ const cors = require("cors");
 
 const authRoutes = require("./routes/auth.routes");
 const adminRoutes = require("./routes/admin.routes");
+const districtRoutes = require("./routes/district.routes");
 
 const app = express();
 
@@ -21,5 +22,6 @@ app.use("/uploads", express.static("src/uploads"));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api", districtRoutes);
 
 module.exports = app;
