@@ -3,7 +3,8 @@ const cors = require("cors");
 
 const authRoutes = require("./routes/auth.routes");
 const adminRoutes = require("./routes/admin.routes");
-const reportRoutes = require("./routes/report.routes");
+const reportRoutes = require("./routes/report.routes");        // Your feature
+const districtRoutes = require("./routes/district.routes");    // From development
 
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger");
@@ -32,6 +33,7 @@ app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 /* ------------------ ROUTES ------------------ */
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/reports", reportRoutes);
+app.use("/api/reports", reportRoutes);      // Your feature
+app.use("/api", districtRoutes);            // From development
 
 module.exports = app;

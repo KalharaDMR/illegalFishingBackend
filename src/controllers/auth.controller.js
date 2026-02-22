@@ -1,10 +1,10 @@
-const User = require("../models/user");
+const { User } = require("../models/user"); // Updated import
 const bcrypt = require("bcryptjs");
 const generateToken = require("../utils/jwt");
 
 exports.signup = async (req, res) => {
   try {
-    const { name, email, phone, password, role } = req.body;
+    const { name, email, phone, password, role, district } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -25,10 +25,10 @@ exports.signup = async (req, res) => {
           .json({ message: "Evidence is required for this role" });
       }
       evidenceFiles = req.files.map((file) => file.filename);
-
     }
 
-    const user = await User.create({
+    // Prepare user data
+    const userData = {
       name,
       email,
       phone,
@@ -36,13 +36,29 @@ exports.signup = async (req, res) => {
       role,
       status,
       evidenceFiles,
-    });
+    };
+
+    // Add district only for AUTHORIZED_PERSON
+    if (role === "AUTHORIZED_PERSON") {
+      if (!district) {
+        return res.status(400).json({ 
+          message: "District is required for AUTHORIZED_PERSON role" 
+        });
+      }
+      userData.district = district;
+    }
+
+    const user = await User.create(userData);
+
+    // Prepare response message
+    let responseMessage = "Signup successful. Waiting for admin approval";
+    if (role === "PUBLIC_USER") {
+      responseMessage = "Signup successful";
+    }
 
     res.status(201).json({
-      message:
-        role === "PUBLIC_USER"
-          ? "Signup successful"
-          : "Signup successful. Waiting for admin approval",
+      message: responseMessage,
+      user: role === "AUTHORIZED_PERSON" ? { district: user.district } : {}
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -71,13 +87,20 @@ exports.login = async (req, res) => {
 
     const token = generateToken(user);
 
+    // Include district in response if user is AUTHORIZED_PERSON
+    const userResponse = {
+      id: user._id,
+      name: user.name,
+      role: user.role,
+    };
+
+    if (user.role === "AUTHORIZED_PERSON" && user.district) {
+      userResponse.district = user.district;
+    }
+
     res.json({
       token,
-      user: {
-        id: user._id,
-        name: user.name,
-        role: user.role,
-      },
+      user: userResponse,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
