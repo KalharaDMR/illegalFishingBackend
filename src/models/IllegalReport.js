@@ -1,5 +1,14 @@
 const mongoose = require("mongoose");
 
+// Sri Lankan districts array (same as in User model)
+const sriLankaDistricts = [
+  "Ampara", "Anuradhapura", "Badulla", "Batticaloa", "Colombo",
+  "Galle", "Gampaha", "Hambantota", "Jaffna", "Kalutara",
+  "Kandy", "Kegalle", "Kilinochchi", "Kurunegala", "Mannar",
+  "Matale", "Matara", "Monaragala", "Mullaitivu", "Nuwara Eliya",
+  "Polonnaruwa", "Puttalam", "Ratnapura", "Trincomalee", "Vavuniya"
+];
+
 const reportSchema = new mongoose.Schema(
   {
     // User who submitted the report
@@ -7,6 +16,19 @@ const reportSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+    },
+
+    // District where incident occurred
+    district: {
+      type: String,
+      required: true,
+      enum: sriLankaDistricts,
+      validate: {
+        validator: function(value) {
+          return sriLankaDistricts.includes(value);
+        },
+        message: props => `${props.value} is not a valid Sri Lankan district!`
+      }
     },
 
     // Incident date selected by user
@@ -65,4 +87,7 @@ const reportSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("IllegalReport", reportSchema);
+module.exports = {
+  IllegalReport: mongoose.model("IllegalReport", reportSchema),
+  sriLankaDistricts
+};
