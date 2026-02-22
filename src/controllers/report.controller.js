@@ -1,5 +1,6 @@
 const IllegalReport = require("../models/IllegalReport");
 
+
 exports.createReport = async (req, res) => {
   try {
     // ✅ reporter is automatically populated from auth middleware
