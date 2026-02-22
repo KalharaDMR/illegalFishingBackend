@@ -1,7 +1,7 @@
-const User = require("../models/user");
+const { User } = require("../models/user"); // Updated import
 
 exports.getPendingUsers = async (req, res) => {
-  const users = await User.find({ status: "PENDING" });
+  const users = await User.find({ status: "PENDING" }).select("-password");
   res.json(users);
 };
 
@@ -10,7 +10,7 @@ exports.approveUser = async (req, res) => {
     req.params.id,
     { status: "APPROVED" },
     { new: true }
-  );
+  ).select("-password");
   res.json({ message: "User approved", user });
 };
 
@@ -19,7 +19,7 @@ exports.rejectUser = async (req, res) => {
     req.params.id,
     { status: "REJECTED" },
     { new: true }
-  );
+  ).select("-password");
   res.json({ message: "User rejected", user });
 };
 
@@ -47,4 +47,3 @@ exports.deleteUser = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
