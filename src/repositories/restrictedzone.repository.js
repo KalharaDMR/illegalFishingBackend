@@ -1,4 +1,4 @@
-const RestrictedZone = require("../models/Restricted.zone");
+const RestrictedZone = require("../models/restricted.zone");
 
 class RestrictedZoneRepository {
   async create(data) {

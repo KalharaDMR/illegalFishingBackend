@@ -5,7 +5,7 @@ const {
   deactivateZone,
   deleteZone,
   getZones,
-} = require("../controllers/restrictedzone.controller");
+} = require("../controllers/Restrictedzone.controller");
 
 const authMiddleware = require("../middlewares/auth.middleware");
 const roleMiddleware = require("../middlewares/role.middleware");
