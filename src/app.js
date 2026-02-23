@@ -5,6 +5,7 @@ const authRoutes = require("./routes/auth.routes");
 const adminRoutes = require("./routes/admin.routes");
 const reportRoutes = require("./routes/report.routes");        // Your feature
 const districtRoutes = require("./routes/district.routes");    // From development
+const investigationRoutes = require("./routes/investigation.routes");
 
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger");
@@ -35,5 +36,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/reports", reportRoutes);      // Your feature
 app.use("/api", districtRoutes);            // From development
+app.use("/api/investigations", investigationRoutes);
 
 module.exports = app;
