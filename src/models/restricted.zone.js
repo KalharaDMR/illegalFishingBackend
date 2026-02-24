@@ -1,27 +1,21 @@
 const mongoose = require("mongoose");
 
-const coordinateSchema = new mongoose.Schema(
-  {
-    lat: { type: Number, required: true },
-    lng: { type: Number, required: true },
-  },
-  { _id: false },
-);
-
 const restrictedZoneSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
 
-    boundaries: {
-      type: [coordinateSchema], // polygon points
-      required: true,
+    location: {
+      lat: { type: Number, required: true },
+      lng: { type: Number, required: true },
     },
 
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
 
+    restrictedTime: { type: String, default: "All Day" },
+
     evidenceFiles: {
-      type: [String], // store file URLs
+      type: [String],
       default: [],
     },
 

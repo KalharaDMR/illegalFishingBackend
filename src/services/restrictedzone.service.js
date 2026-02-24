@@ -6,9 +6,13 @@ class RestrictedZoneService {
     this.repository = RestrictedZoneRepository;
   }
 
-  async createZone(data) {
+  async createZone(data, files = []) {
     this.validateDates(data.startDate, data.endDate);
     await this.validateOverlap(data);
+
+    if (files.length > 0) {
+      data.evidenceFiles = files.map((file) => file.path);
+    }
 
     const zone = await this.repository.create(data);
 
@@ -21,9 +25,13 @@ class RestrictedZoneService {
     return zone;
   }
 
-  async updateZone(id, data) {
+  async updateZone(id, data, files = []) {
     this.validateDates(data.startDate, data.endDate);
     await this.validateOverlap(data, id);
+
+    if (files.length > 0) {
+      data.evidenceFiles = files.map((file) => file.path);
+    }
 
     const updated = await this.repository.update(id, data);
 
