@@ -1,5 +1,6 @@
 const { IllegalReport } = require("../models/IllegalReport");
 const { User } = require("../models/user");
+const sendEmail = require("../utils/email.service"); // SendGrid service
 
 /* =========================
    CREATE REPORT
@@ -19,8 +20,8 @@ exports.createReport = async (req, res) => {
     } = req.body;
 
     if (!district) {
-      return res.status(400).json({ 
-        message: "District is required for reporting" 
+      return res.status(400).json({
+        message: "District is required for reporting",
       });
     }
 
@@ -42,21 +43,80 @@ exports.createReport = async (req, res) => {
 
     await newReport.save();
 
-    // Find all AUTHORIZED_PERSONs in this district
-    const authorizedPersonsInDistrict = await User.find({
+    // =========================
+    // FIND USERS
+    // =========================
+
+    const reporter = await User.findById(reporterId);
+
+    const authorizedPersons = await User.find({
       role: "AUTHORIZED_PERSON",
       district: district,
-      status: "APPROVED"
-    }).select("name email phone");
+      status: "APPROVED",
+    }).select("name email");
+
+    const admins = await User.find({
+      role: "ADMIN",
+      status: "APPROVED",
+    }).select("name email");
+
+    // =========================
+    // SEND EMAILS
+    // =========================
+
+    // 1️⃣ Confirmation to Reporter
+    if (reporter) {
+      await sendEmail(
+        reporter.email,
+        "Report Submitted Successfully",
+        `Dear ${reporter.name},
+
+Your illegal fishing report has been successfully submitted.
+
+District: ${district}
+Date: ${reportDate}
+
+- Marine Protection System`
+      );
+    }
+
+    // 2️⃣ Alert to District Officers
+    for (const officer of authorizedPersons) {
+      await sendEmail(
+        officer.email,
+        "🚨 New District Report Alert",
+        `Hello ${officer.name},
+
+A new report has been submitted in your district.
+
+District: ${district}
+Location: ${location}
+
+- Marine Protection System`
+      );
+    }
+
+    // 3️⃣ Alert to Admins
+    for (const admin of admins) {
+      await sendEmail(
+        admin.email,
+        "📢 New System Report Submitted",
+        `Hello ${admin.name},
+
+A new report has been submitted.
+
+District: ${district}
+Reported By: ${reporter?.name || "User"}
+
+- Marine Protection System`
+      );
+    }
 
     res.status(201).json({
       message: "Report submitted successfully",
       report: newReport,
-      notifications: {
-        district: district,
-        authorizedPersonsNotified: authorizedPersonsInDistrict.length,
-      }
     });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -74,8 +134,8 @@ exports.getMyReports = async (req, res) => {
     const reports = await IllegalReport.find({
       reporter: req.user.userId,
     })
-    .populate("reporter", "name email role district")
-    .sort({ createdAt: -1 });
+      .populate("reporter", "name email role district")
+      .sort({ createdAt: -1 });
 
     res.json(reports);
   } catch (error) {
@@ -84,95 +144,30 @@ exports.getMyReports = async (req, res) => {
 };
 
 /* =========================
-   GET MY DISTRICT REPORTS (For AUTHORIZED_PERSON)
-   GET /api/reports/my-district
+   GET MY DISTRICT REPORTS
 ========================= */
 exports.getMyDistrictReports = async (req, res) => {
   try {
-    // Fetch the full user from database to get district
     const user = await User.findById(req.user.userId);
-    
-    if (!user) {
-      return res.status(404).json({ 
-        message: "User not found" 
+
+    if (!user || !user.district) {
+      return res.status(400).json({
+        message: "District not assigned",
       });
     }
 
-    if (!user.district) {
-      return res.status(400).json({ 
-        message: "No district assigned to your account" 
-      });
-    }
-
-    const reports = await IllegalReport.find({ 
-      district: user.district 
+    const reports = await IllegalReport.find({
+      district: user.district,
     })
-    .populate("reporter", "name email phone")
-    .sort({ createdAt: -1 });
+      .populate("reporter", "name email phone")
+      .sort({ createdAt: -1 });
 
     res.json({
       district: user.district,
       count: reports.length,
-      reports
+      reports,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: error.message });
-  }
-};
-
-/* =========================
-   GET REPORTS BY DISTRICT (For ADMIN)
-   GET /api/reports/district/:district
-========================= */
-exports.getReportsByDistrict = async (req, res) => {
-  try {
-    const { district } = req.params;
-
-    const reports = await IllegalReport.find({ 
-      district: district 
-    })
-    .populate("reporter", "name email phone role")
-    .sort({ createdAt: -1 });
-
-    res.json({
-      district: district,
-      count: reports.length,
-      reports
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: error.message });
-  }
-};
-
-/* =========================
-   GET ALL REPORTS (For ADMIN)
-   GET /api/reports/all
-========================= */
-exports.getAllReports = async (req, res) => {
-  try {
-    const reports = await IllegalReport.find({})
-      .populate("reporter", "name email phone role district")
-      .sort({ createdAt: -1 });
-
-    // Group by district for better visualization
-    const reportsByDistrict = reports.reduce((acc, report) => {
-      const district = report.district;
-      if (!acc[district]) {
-        acc[district] = [];
-      }
-      acc[district].push(report);
-      return acc;
-    }, {});
-
-    res.json({
-      total: reports.length,
-      byDistrict: reportsByDistrict,
-      reports: reports
-    });
-  } catch (error) {
-    console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -182,20 +177,12 @@ exports.getAllReports = async (req, res) => {
 ========================= */
 exports.getReportStatistics = async (req, res) => {
   try {
-    // Fetch the full user from database
     const user = await User.findById(req.user.userId);
-    
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    const userRole = user.role;
-    const userDistrict = user.district;
 
     let matchStage = {};
 
-    if (userRole === "AUTHORIZED_PERSON" && userDistrict) {
-      matchStage.district = userDistrict;
+    if (user.role === "AUTHORIZED_PERSON" && user.district) {
+      matchStage.district = user.district;
     }
 
     const statistics = await IllegalReport.aggregate([
@@ -213,13 +200,13 @@ exports.getReportStatistics = async (req, res) => {
           resolved: {
             $sum: { $cond: [{ $eq: ["$status", "RESOLVED"] }, 1, 0] }
           },
-          lastReport: { $max: "$createdAt" }
-        }
+        },
       },
-      { $sort: { total: -1 } }
+      { $sort: { total: -1 } },
     ]);
 
     res.json(statistics);
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -264,6 +251,47 @@ exports.deleteReport = async (req, res) => {
     }
 
     res.json({ message: "Report deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/* =========================
+   GET REPORTS BY DISTRICT (ADMIN)
+========================= */
+exports.getReportsByDistrict = async (req, res) => {
+  try {
+    const { district } = req.params;
+
+    const reports = await IllegalReport.find({ district })
+      .populate("reporter", "name email phone role")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      district,
+      count: reports.length,
+      reports,
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/* =========================
+   GET ALL REPORTS (ADMIN)
+========================= */
+exports.getAllReports = async (req, res) => {
+  try {
+    const reports = await IllegalReport.find({})
+      .populate("reporter", "name email phone role district")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      total: reports.length,
+      reports,
+    });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
