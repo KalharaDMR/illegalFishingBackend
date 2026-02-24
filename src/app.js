@@ -5,9 +5,11 @@ const cors = require("cors");
 
 const authRoutes = require("./routes/auth.routes");
 const adminRoutes = require("./routes/admin.routes");
-const reportRoutes = require("./routes/report.routes");              // From Reporting
-const restrictedzoneRoutes = require("./routes/restrictedzone.routes"); // From development
-const districtRoutes = require("./routes/district.routes");          // Single import
+const reportRoutes = require("./routes/report.routes");
+const districtRoutes = require("./routes/district.routes");
+const investigationRoutes = require("./routes/investigation.routes");      // From Investigation_Management
+const restrictedzoneRoutes = require("./routes/restrictedzone.routes");    // From development
+const ZoologistRoutes = require("./routes/Zoologist.routes");              // From development
 
 const app = express();
 
@@ -35,9 +37,10 @@ app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 /* ------------------ ROUTES ------------------ */
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/reports", reportRoutes);                 // From Reporting
-app.use("/api/zones", restrictedzoneRoutes);           // From development
-app.use("/api", districtRoutes);                       // Single instance
-app.use('/api/species', require('./routes/Zoologist.routes')); // From development
+app.use("/api/reports", reportRoutes);
+app.use("/api", districtRoutes);
+app.use("/api/investigations", investigationRoutes);        // From Investigation_Management
+app.use("/api/zones", restrictedzoneRoutes);                // From development
+app.use('/api/species', ZoologistRoutes);                   // From development
 
 module.exports = app;
