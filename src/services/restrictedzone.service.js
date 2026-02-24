@@ -82,12 +82,18 @@ class RestrictedZoneService {
     for (let zone of existingZones) {
       if (excludeId && zone._id.toString() === excludeId) continue;
 
-      const overlap =
+      const timeOverlap =
         new Date(data.startDate) <= zone.endDate &&
         new Date(data.endDate) >= zone.startDate;
 
-      if (overlap) {
-        throw new Error("Time period overlaps with another restricted zone");
+      const sameLocation =
+        zone.location.lat === data.location.lat &&
+        zone.location.lng === data.location.lng;
+
+      if (timeOverlap && sameLocation) {
+        throw new Error(
+          "A restricted zone already exists at this location during the selected time period",
+        );
       }
     }
   }
