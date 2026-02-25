@@ -10,7 +10,12 @@ const mongoose = require('mongoose');
  */
 const createEndaneredSpeciesEntry = async (req, res) => {
   try {
-    const {
+
+    /* ===============================
+       1. Extract and Parse Data
+    =============================== */
+
+    let {
       fishes,
       description,
       location,
@@ -18,33 +23,69 @@ const createEndaneredSpeciesEntry = async (req, res) => {
       tags,
     } = req.body;
 
-
-    if(fishes.length == 0)
-    {
-      return res.status(400).json({ error: "At least one fish entry is required"});
-    }
-    for(const fish of fishes)
-    {
-        const { scientificName, localName, conservationStatus } = fish;
-        if(!scientificName || !localName || !conservationStatus)
-        {
-          return res.status(400).json({ error: "All fish entries must have scientific name, local name, and conservation status" });
-        }
+    // Parse fishes if string
+    if (typeof fishes === "string") {
+      fishes = JSON.parse(fishes);
     }
 
-    if(description && description.length <20)
-    {
-      return res.status(400).json({ error: "Description must be at least 20 characters long" });
+    // Parse location if string
+    if (typeof location === "string") {
+      location = JSON.parse(location);
     }
 
-    if(description && description.length > 2000)
-    {
-      return res.status(400).json({ error: "Description must not exceed 2000 characters" });
+    // Parse threats if string
+    if (typeof threats === "string") {
+      threats = JSON.parse(threats);
     }
+
+    // Parse tags if string
+    if (typeof tags === "string") {
+      tags = JSON.parse(tags);
+    }
+
 
     /* ===============================
-       2. Validate Location
+       2. Validate Fishes
     =============================== */
+
+    if (!Array.isArray(fishes) || fishes.length === 0) {
+      return res.status(400).json({
+        error: "At least one fish entry is required"
+      });
+    }
+
+    for (const fish of fishes) {
+      const { scientificName, localName, conservationStatus } = fish;
+
+      if (!scientificName || !localName || !conservationStatus) {
+        return res.status(400).json({
+          error: "All fish entries must have scientific name, local name, and conservation status"
+        });
+      }
+    }
+
+
+    /* ===============================
+       3. Validate Description
+    =============================== */
+
+    if (description && description.length < 20) {
+      return res.status(400).json({
+        error: "Description must be at least 20 characters long"
+      });
+    }
+
+    if (description && description.length > 2000) {
+      return res.status(400).json({
+        error: "Description must not exceed 2000 characters"
+      });
+    }
+
+
+    /* ===============================
+       4. Validate Location
+    =============================== */
+
     if (
       !location ||
       !location.coordinates ||
@@ -55,65 +96,73 @@ const createEndaneredSpeciesEntry = async (req, res) => {
       });
     }
 
-    if(location.coordinates[0] < -180 || location.coordinates[0] > 180 ||
-       location.coordinates[1] < -90 || location.coordinates[1] > 90)
-    {
+    const longitude = parseFloat(location.coordinates[0]);
+    const latitude = parseFloat(location.coordinates[1]);
+
+    if (
+      longitude < -180 || longitude > 180 ||
+      latitude < -90 || latitude > 90
+    ) {
       return res.status(400).json({
         error: "Invalid coordinates. Longitude must be between -180 and 180, latitude between -90 and 90"
       });
     }
 
-    Species.findOne({
-      "location.type": "Point",
-      "location.coordinates": [
-          parseFloat(location.coordinates[0]),
-          parseFloat(location.coordinates[1])
-          ]
-    }).then(existingSpecies => {
-      if (existingSpecies) {
-        return res.status(400).json({
-          error: "A species already exists at this location"
-        });
-      }}).catch(err => {
-        console.log(err.message)
-      })
 
     /* ===============================
-       4. Upload Evidence Image
+       5. Check existing species at location
     =============================== */
 
-    if (req.file) {
-      try {
-        const uploadResult = await uploadToCloudinary(
-          req.file.path,
-          "marine-species/evidence"
-        );
+    const existingSpecies = await Species.findOne({
+      "location.type": "Point",
+      "location.coordinates": [longitude, latitude]
+    });
 
-        evidenceObject = {
-          url: uploadResult.url,
-          publicId: uploadResult.publicId,
-          format: uploadResult.format,
-        }
-      } catch (error) {
-        return res.status(500).json({
-          error: `Image upload failed: ${error.message}`
-        });
-      }
-    } else {
+    if (existingSpecies) {
+      return res.status(400).json({
+        error: "A species already exists at this location"
+      });
+    }
+
+
+    /* ===============================
+       6. Upload Evidence Image
+    =============================== */
+
+    if (!req.file) {
       return res.status(400).json({
         error: "Evidence image is required"
       });
     }
 
+    let evidenceObject;
+
+    try {
+      const uploadResult = await uploadToCloudinary(
+        req.file.path,
+        "marine-species/evidence"
+      );
+
+      evidenceObject = {
+        url: uploadResult.url,
+        publicId: uploadResult.publicId,
+        format: uploadResult.format,
+      };
+
+    } catch (error) {
+      return res.status(500).json({
+        error: `Image upload failed: ${error.message}`
+      });
+    }
+
+
     /* ===============================
-       5. Format Location
+       7. Format Location
     =============================== */
+
     const locationData = {
       type: "Point",
-      coordinates: [
-        parseFloat(location.coordinates[0]), // longitude
-        parseFloat(location.coordinates[1])  // latitude
-      ],
+      coordinates: [longitude, latitude],
       address: location.address || "",
       city: location.city || "",
       country: location.country || "",
@@ -121,9 +170,11 @@ const createEndaneredSpeciesEntry = async (req, res) => {
         location.formattedAddress || location.address || ""
     };
 
+
     /* ===============================
-       6. Create Species Document
+       8. Create Species Document
     =============================== */
+
     const species = await Species.create({
       fishes,
       description,
@@ -132,7 +183,13 @@ const createEndaneredSpeciesEntry = async (req, res) => {
       threats: Array.isArray(threats) ? threats : [],
       tags: Array.isArray(tags) ? tags : [],
       submittedBy: req.user?._id || null,
+      isVerified: true
     });
+
+
+    /* ===============================
+       9. Success Response
+    =============================== */
 
     return res.status(201).json({
       success: true,
@@ -141,12 +198,15 @@ const createEndaneredSpeciesEntry = async (req, res) => {
     });
 
   } catch (error) {
+
+    console.error(error);
+
     return res.status(500).json({
       error: error.message
     });
+
   }
 };
-
 
 /**
  * @desc    Get all Endangered species with filtering and pagination
