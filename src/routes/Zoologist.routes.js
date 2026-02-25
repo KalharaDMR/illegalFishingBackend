@@ -4,10 +4,11 @@ const multer = require('multer');
 const {
   createEndaneredSpeciesEntry,
   getAllEndangeredSpeciesEntryByPagination,
-  getEndangeredSpeciesDetailsById,
+  getEndangeredSpeciesDetailsByLocation,
   updateEndangeredSpeciesEntry,
   deleteEndangeredSpeciesEntry,
   getNearbyEndangeredSpeciesPlaces,
+  getAllEndangeredSpeciesEntry
 } = require('../controllers/species.controller');
 const auth = require("../middlewares/auth.middleware")
 const role= require("../middlewares/role.middleware")
@@ -20,9 +21,10 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Public routes
+// Get all species with pagination
 router.get('/',auth,role("ZOOLOGIST"), getAllEndangeredSpeciesEntryByPagination);
-router.get('/:id',auth,role("ZOOLOGIST"), getEndangeredSpeciesDetailsById);
+
+// Get nearby endangered species places
 router.post('/nearby',auth,role("ZOOLOGIST"), getNearbyEndangeredSpeciesPlaces);
 
 // Create species (with image upload and validation)
@@ -34,5 +36,9 @@ router.put('/:id',auth,role("ZOOLOGIST"), upload.single('evidence'),updateEndang
 // Delete species
 router.delete('/:id',auth,role("ZOOLOGIST"), deleteEndangeredSpeciesEntry);
 
+// Get species details by location
+router.post('/details-by-location',auth,role("ZOOLOGIST"), getEndangeredSpeciesDetailsByLocation);
+
+router.post("/all",auth,role("ZOOLOGIST"), getAllEndangeredSpeciesEntry);
 
 module.exports = router;

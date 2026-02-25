@@ -22,7 +22,6 @@ const createEndaneredSpeciesEntry = async (req, res) => {
       threats,
       tags,
     } = req.body;
-
     // Parse fishes if string
     if (typeof fishes === "string") {
       fishes = JSON.parse(fishes);
@@ -120,7 +119,7 @@ const createEndaneredSpeciesEntry = async (req, res) => {
 
     if (existingSpecies) {
       return res.status(400).json({
-        error: "A species already exists at this location"
+        error: "The location already has an endangered species entry. Please provide a different location or update the existing entry."
       });
     }
 
@@ -182,8 +181,8 @@ const createEndaneredSpeciesEntry = async (req, res) => {
       location: locationData,
       threats: Array.isArray(threats) ? threats : [],
       tags: Array.isArray(tags) ? tags : [],
-      submittedBy: req.user?._id || null,
-      isVerified: true
+      submittedBy: req.user?.userId || null,
+      isVerified: false
     });
 
 
@@ -280,8 +279,15 @@ const getAllEndangeredSpeciesEntryByPagination = async (req, res) => {
  * @route   GET /api/species/:id
  * @access  Public
  */
-const getEndangeredSpeciesDetailsById = async (req, res) => {
-  const species = await Species.findById(req.params.id).select('-__v');
+const getEndangeredSpeciesDetailsByLocation = async (req, res) => {
+  const {location} = req.body
+  if (!location || !location.coordinates || location.coordinates.length !== 2) {
+    return res.status(400).json({ error: "Valid location coordinates (longitude, latitude) are required" });
+  }
+  const species = await Species.findOne({
+          "location.type": "Point",
+          "location.coordinates": [location.coordinates[0], location.coordinates[1]]
+        }).select('-__v');
 
   if (!species) 
   {
@@ -311,55 +317,90 @@ const updateEndangeredSpeciesEntry = async (req, res) => {
   {
     return res.status(404).json({error:"Endangered species entry not found"});
   }
-
-  const {
-    fishes,
-    description,
-    location,
-    threats,
-    tags,
+  if(species.id!==req.user.userId)
+  {
+    return res.status(403).json({error:"You are not authorized to update this entry"});
+  }
+  let {
+      fishes,
+      description,
+      location,
+      threats,
+      tags,
   } = req.body;
-
-  if(fishes.length == 0)
+    try{
+      if (fishes && typeof fishes === "string") 
+      {
+        fishes = JSON.parse(fishes);
+      }
+      // Parse location if string
+      if (location && typeof location === "string") {
+        location = JSON.parse(location);
+      }
+      // Parse threats if string
+      if (threats && typeof threats === "string") {
+        threats = JSON.parse(threats);
+      }
+      // Parse tags if string
+      if (tags && typeof tags === "string") {
+        tags = JSON.parse(tags);
+      }
+    }catch(err)
     {
-      return res.status(400).json({ error: "At least one fish entry is required"});
+      return res.status(400).json({ error: "Invalid JSON format for fishes, location, threats, or tags" });
     }
-  for(const fish of fishes)
-    {
-        const { scientificName, localName, conservationStatus } = fish;
-        if(!scientificName || !localName || !conservationStatus)
+    if(fishes && (!Array.isArray(fishes) || fishes.length === 0))
+      {
+        return res.status(400).json({ error: "Fishes must be an array with at least one element" });
+      }
+    if(fishes && Array.isArray(fishes) && fishes.length > 0)
+      {
+        for(const fish of fishes)
         {
-          return res.status(400).json({ error: "All fish entries must have scientific name, local name, and conservation status" });
+            const { scientificName, localName, conservationStatus } = fish;
+            if(!scientificName || !localName || !conservationStatus)
+            {
+              return res.status(400).json({ error: "All fish entries must have scientific name, local name, and conservation status" });
+            }
         }
-    }
-
-  if(description && description.length <20)
-    {
-      return res.status(400).json({ error: "Description must be at least 20 characters long" });
-    }
-
-  if(description && description.length > 2000)
-    {
-      return res.status(400).json({ error: "Description must not exceed 2000 characters" });
-    }
-  // Handle image upload if new image is provided
-  if (req.file) {
-    try {
-      // Delete old image from Cloudinary if exists
-      if (species.evidence.publicId) {
-        await deleteFromCloudinary(species.evidence.publicId);
+      }
+    if(threats && !Array.isArray(threats))
+      {
+        return res.status(400).json({ error: "Threats must be an array" });
+      }
+    
+    if(tags && !Array.isArray(tags))
+      {
+        return res.status(400).json({ error: "Tags must be an array" });
+      }
+    
+    if(description && description.length <20)
+      {
+        return res.status(400).json({ error: "Description must be at least 20 characters long" });
       }
 
-      // Upload new image
-      const uploadResult = await uploadToCloudinary(req.file.path, 'marine-species/evidence');
-      species.evidence = {
-        url: uploadResult.url,
-        publicId: uploadResult.publicId,
-        format: uploadResult.format
-      };
-    } catch (error) {
-      return res.status(500).json({ error: `Image upload failed: ${error.message}` });
-    }
+    if(description && description.length > 2000)
+      {
+        return res.status(400).json({ error: "Description must not exceed 2000 characters" });
+      }
+    // Handle image upload if new image is provided
+    if (req.file) {
+      try {
+        // Delete old image from Cloudinary if exists
+        if (species.evidence.publicId) {
+          await deleteFromCloudinary(species.evidence.publicId);
+        }
+
+        // Upload new image
+        const uploadResult = await uploadToCloudinary(req.file.path, 'marine-species/evidence');
+        species.evidence = {
+          url: uploadResult.url,
+          publicId: uploadResult.publicId,
+          format: uploadResult.format
+        };
+      } catch (error) {
+        return res.status(500).json({ error: `Image upload failed: ${error.message}` });
+      }
   }
 
   try{
@@ -409,7 +450,10 @@ const deleteEndangeredSpeciesEntry = async (req, res) => {
   if (!species) {
     return res.status(404).json({ error: "Species not found" });
   }
-
+  if(species.id!==req.user.userId)
+  {
+    return res.status(403).json({error:"You are not authorized to delete this entry"});
+  }
   // Delete image from Cloudinary
   if (species.evidence.publicId) {
     try {
@@ -424,7 +468,6 @@ const deleteEndangeredSpeciesEntry = async (req, res) => {
   return res.status(200).json({
     success: true,
     message: 'Species deleted successfully',
-    data: {}
   });
   }catch(err)
   {
@@ -504,13 +547,26 @@ const getNearbyEndangeredSpeciesPlaces = async (req, res) => {
   }
 };
 
-
+const getAllEndangeredSpeciesEntry = async (req, res) => {
+  try {
+    const species = await Species.find().select('-__v');
+    return res.status(200).json({
+      success: true,
+      count: species.length,
+      data: species
+    });
+  }catch(err)
+  {
+    return res.status(500).json({error:err.message})
+  } 
+}
 
 module.exports = {
   createEndaneredSpeciesEntry,
   getAllEndangeredSpeciesEntryByPagination,
-  getEndangeredSpeciesDetailsById,
+  getEndangeredSpeciesDetailsByLocation,
   updateEndangeredSpeciesEntry,
   deleteEndangeredSpeciesEntry,
+  getAllEndangeredSpeciesEntry,
   getNearbyEndangeredSpeciesPlaces,
 };
