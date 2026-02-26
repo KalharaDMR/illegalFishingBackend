@@ -100,6 +100,21 @@ const investigationSchema = new mongoose.Schema(
     notifiedAt: {
       type: Date,
     },
+
+     notifications: {
+      sms: {
+        success: Boolean,
+        messageId: String,
+        to: [String],
+        cost: String,
+        provider: String,
+        error: String,
+        successful: Number,
+        failed: Number
+      },
+      sentAt: Date
+    },
+    
   },
   {
     timestamps: true,

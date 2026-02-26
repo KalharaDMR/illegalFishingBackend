@@ -1,7 +1,7 @@
 const Investigation = require("../models/Investigation");
 const { IllegalReport } = require("../models/IllegalReport");
 const { User } = require("../models/user");
-const { sendNotification } = require("../services/notification.service"); // We'll create this
+const notificationService = require("../services/notification.service"); 
 const { generatePDF } = require("../services/pdf.service"); // We'll create this
 const path = require("path");
 const fs = require("fs");
@@ -125,8 +125,8 @@ exports.startInvestigation = async (req, res) => {
 };
 
 /* =========================
-   SUBMIT INVESTIGATION
-   Authorized officer submits their findings
+   SUBMIT INVESTIGATION (UPDATED)
+   Authorized officer submits their findings with SMS notification
 ========================= */
 exports.submitInvestigation = async (req, res) => {
   try {
@@ -154,7 +154,7 @@ exports.submitInvestigation = async (req, res) => {
       ? req.files.videos.map(file => file.path.replace(/\\/g, '/'))
       : [];
 
-    // Find and update investigation
+    // Find investigation with officer validation
     const investigation = await Investigation.findOne({
       _id: investigationId,
       officerId
@@ -187,34 +187,55 @@ exports.submitInvestigation = async (req, res) => {
       { status: "RESOLVED" }
     );
 
-    // Try to send notification, but don't fail if it doesn't work
+    // Fetch related data for notifications
+    const report = await IllegalReport.findById(investigation.reportId);
+    const officer = await User.findById(officerId).select('name email phone');
+
+    /* ===== NEW: SEND SMS NOTIFICATIONS ===== */
+    let notificationResult = null;
+    
     try {
-      const notificationService = require("../services/notification.service");
-      await notificationService.sendNotification({
-        type: "INVESTIGATION_COMPLETED",
-        recipient: "ADMIN",
-        title: `Investigation Completed for Report #${investigation.reportId}`,
-        body: `Investigation completed by officer ${req.user.name || 'Unknown'}. Action taken: ${actionTaken.replace(/_/g, ' ')}`,
-        data: {
-          reportId: investigation.reportId,
-          investigationId: investigation._id,
-          actionTaken,
-          officerId
-        }
+      console.log('📱 Attempting to send SMS notifications for completed investigation...');
+      
+      notificationResult = await notificationService.sendInvestigationCompletedNotification(
+        investigation,
+        report,
+        officer
+      );
+
+      // Store notification status in investigation
+      investigation.notifications = {
+        sms: notificationResult.sms,
+        sentAt: new Date()
+      };
+      
+      await investigation.save();
+
+      console.log('✅ Notification process completed:', {
+        smsSuccess: notificationResult.sms?.success,
+        smsSuccessful: notificationResult.sms?.successful,
+        smsFailed: notificationResult.sms?.failed
       });
 
-      investigation.adminNotified = true;
-      investigation.notifiedAt = new Date();
-      await investigation.save();
     } catch (notifError) {
-      console.warn("Notification failed but investigation saved:", notifError.message);
-      // Don't fail the whole request just because notification failed
+      console.error('❌ Notification service error:', notifError.message);
+      notificationResult = {
+        success: false,
+        error: notifError.message
+      };
     }
+    /* ===== END OF SMS NOTIFICATIONS ===== */
 
     res.json({
       message: "Investigation submitted successfully",
-      investigation
+      investigation,
+      notifications: notificationResult, // Include notification status in response
+      smsConfig: {
+        trialAccount: true,
+        note: "SMS sent to verified numbers only. Add numbers in Twilio Console."
+      }
     });
+
   } catch (error) {
     console.error("Submit investigation error:", error);
     res.status(500).json({ 
@@ -368,5 +389,51 @@ exports.generateReportPDF = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
+  }
+};
+
+/* =========================
+   GET NOTIFICATION STATUS
+   Check SMS delivery status for admin
+========================= */
+exports.getNotificationStatus = async (req, res) => {
+  try {
+    const { investigationId } = req.params;
+
+    const investigation = await Investigation.findById(investigationId)
+      .populate("reportId", "district location")
+      .populate("officerId", "name");
+
+    if (!investigation) {
+      return res.status(404).json({ message: "Investigation not found" });
+    }
+
+    // Get notification status from investigation or create default
+    const notifications = investigation.notifications || {
+      sms: { success: false, error: 'No notifications sent' }
+    };
+
+    const status = {
+      investigationId: investigation._id,
+      reportId: investigation.reportId?._id,
+      district: investigation.reportId?.district,
+      officerName: investigation.officerId?.name,
+      actionTaken: investigation.actionTaken,
+      fineAmount: investigation.fineAmount,
+      notifications: notifications,
+      adminNumbers: process.env.ADMIN_PHONE_NUMBERS 
+        ? process.env.ADMIN_PHONE_NUMBERS.split(',').length 
+        : process.env.ADMIN_PHONE_NUMBER ? 1 : 0,
+      twilioConfig: {
+        accountSid: process.env.TWILIO_ACCOUNT_SID ? '✅ Configured' : '❌ Missing',
+        phoneNumber: process.env.TWILIO_PHONE_NUMBER || '❌ Missing',
+        isTrial: true
+      }
+    };
+
+    res.json(status);
+  } catch (error) {
+    console.error("Error in getNotificationStatus:", error);
+    res.status(500).json({ error: error.message });
   }
 };
