@@ -437,3 +437,122 @@ exports.getNotificationStatus = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+/* =========================
+   DELETE INVESTIGATION (Admin Only)
+   Permanently remove an investigation
+========================= */
+exports.deleteInvestigation = async (req, res) => {
+  try {
+    const { investigationId } = req.params;
+    
+    // Check if investigation exists
+    const investigation = await Investigation.findById(investigationId);
+    if (!investigation) {
+      return res.status(404).json({ message: "Investigation not found" });
+    }
+    
+    // Optional: Update the original report status back to PENDING
+    await IllegalReport.findByIdAndUpdate(
+      investigation.reportId,
+      { status: "PENDING" }
+    );
+    
+    // Delete the investigation
+    await Investigation.findByIdAndDelete(investigationId);
+    
+    res.json({ 
+      message: "Investigation deleted successfully",
+      deletedId: investigationId
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/* =========================
+   CANCEL INVESTIGATION (Officer only)
+   Cancel an investigation before completing it
+========================= */
+exports.cancelInvestigation = async (req, res) => {
+  try {
+    const { investigationId } = req.params;
+    const officerId = req.user.userId;
+    
+    // Find investigation belonging to this officer
+    const investigation = await Investigation.findOne({
+      _id: investigationId,
+      officerId
+    });
+    
+    if (!investigation) {
+      return res.status(404).json({ message: "Investigation not found" });
+    }
+    
+    // Can only cancel if still investigating
+    if (investigation.status !== "INVESTIGATING") {
+      return res.status(400).json({ 
+        message: "Cannot cancel completed investigation" 
+      });
+    }
+    
+    // Update report status back to PENDING
+    await IllegalReport.findByIdAndUpdate(
+      investigation.reportId,
+      { status: "PENDING" }
+    );
+    
+    // Delete the investigation
+    await Investigation.findByIdAndDelete(investigationId);
+    
+    res.json({ 
+      message: "Investigation cancelled successfully",
+      cancelledId: investigationId
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/* =========================
+   BULK DELETE (Admin only)
+   Delete multiple investigations by IDs
+========================= */
+exports.bulkDeleteInvestigations = async (req, res) => {
+  try {
+    const { investigationIds } = req.body; // Array of IDs
+    
+    if (!investigationIds || !Array.isArray(investigationIds)) {
+      return res.status(400).json({ 
+        message: "Please provide an array of investigation IDs" 
+      });
+    }
+    
+    // Update all related reports back to PENDING
+    const investigations = await Investigation.find({ 
+      _id: { $in: investigationIds } 
+    });
+    
+    for (const inv of investigations) {
+      await IllegalReport.findByIdAndUpdate(
+        inv.reportId,
+        { status: "PENDING" }
+      );
+    }
+    
+    // Delete the investigations
+    const result = await Investigation.deleteMany({
+      _id: { $in: investigationIds }
+    });
+    
+    res.json({ 
+      message: `Deleted ${result.deletedCount} investigations`,
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};

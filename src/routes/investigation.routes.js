@@ -15,6 +15,9 @@ const {
   getAllInvestigations,
   generateReportPDF,
   getNotificationStatus,
+  deleteInvestigation,
+  cancelInvestigation,
+  bulkDeleteInvestigations
 } = require("../controllers/investigation.controller");
 
 // Configure multer for evidence uploads
@@ -130,7 +133,38 @@ router.get(
   generateReportPDF
 );
 
-router.get("/:investigationId/notifications", authMiddleware, roleMiddleware("ADMIN"), getNotificationStatus);
+router.get(
+  "/:investigationId/notifications",
+   authMiddleware,
+  roleMiddleware("ADMIN"), getNotificationStatus);
+
+/* =========================
+   DELETE ROUTES
+========================= */
+
+// Delete investigation (Admin only)
+router.delete(
+  "/:investigationId",
+  authMiddleware,
+  roleMiddleware("ADMIN"),
+  deleteInvestigation
+);
+
+// Cancel investigation (Officer only - for their own investigations)
+router.delete(
+  "/cancel/:investigationId",
+  authMiddleware,
+  roleMiddleware("AUTHORIZED_PERSON"),
+  cancelInvestigation
+);
+
+// Bulk delete (Admin only)
+router.post(
+  "/bulk-delete",
+  authMiddleware,
+  roleMiddleware("ADMIN"),
+  bulkDeleteInvestigations
+);
 
 module.exports = router;
 
