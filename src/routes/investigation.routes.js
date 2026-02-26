@@ -14,6 +14,7 @@ const {
   getMyInvestigations,
   getAllInvestigations,
   generateReportPDF,
+  getNotificationStatus,
 } = require("../controllers/investigation.controller");
 
 // Configure multer for evidence uploads
@@ -128,6 +129,8 @@ router.get(
   authMiddleware,
   generateReportPDF
 );
+
+router.get("/:investigationId/notifications", authMiddleware, roleMiddleware("ADMIN"), getNotificationStatus);
 
 module.exports = router;
 
