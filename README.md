@@ -79,6 +79,8 @@ SendGrid (for email) - Sign up
 
 Cloudinary (for images) - Sign up
 
+Gemini API Key
+
 🔧 Setup Instructions
 Step 1: Clone the Repository
 bash
@@ -153,6 +155,9 @@ FROM_EMAIL=noreply@marineprotection.com
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
+
+Gemini API KEY =
+
 Step 5: Start MongoDB
 Local MongoDB:
 
