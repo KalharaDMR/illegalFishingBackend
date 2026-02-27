@@ -82,7 +82,7 @@ Cloudinary (for images) - Sign up
 🔧 Setup Instructions
 Step 1: Clone the Repository
 bash
-git clone <your-repository-url>
+git clone <https://github.com/KalharaDMR/illegalFishingBackend>
 cd illegalFishingBackend
 Step 2: Install Dependencies
 bash
