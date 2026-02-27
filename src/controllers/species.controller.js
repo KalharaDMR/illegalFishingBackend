@@ -275,8 +275,8 @@ const getAllEndangeredSpeciesEntryByPagination = async (req, res) => {
 };
 
 /**
- * @desc    Get single species by ID
- * @route   GET /api/species/:id
+ * @desc    Get single species by location
+ * @route   post /api/species/details-by-location
  * @access  Public
  */
 const getEndangeredSpeciesDetailsByLocation = async (req, res) => {
@@ -312,12 +312,13 @@ const updateEndangeredSpeciesEntry = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid Endangered Species ID' });
   }
   let species = await Species.findById(req.params.id);
-
+  
   if (!species) 
   {
     return res.status(404).json({error:"Endangered species entry not found"});
   }
-  if(species.id!==req.user.userId)
+  
+  if(species.submittedBy.toString()!==req.user.userId)
   {
     return res.status(403).json({error:"You are not authorized to update this entry"});
   }
@@ -450,7 +451,7 @@ const deleteEndangeredSpeciesEntry = async (req, res) => {
   if (!species) {
     return res.status(404).json({ error: "Species not found" });
   }
-  if(species.id!==req.user.userId)
+  if(species.submittedBy.toString()!==req.user.userId)
   {
     return res.status(403).json({error:"You are not authorized to delete this entry"});
   }
@@ -547,9 +548,12 @@ const getNearbyEndangeredSpeciesPlaces = async (req, res) => {
   }
 };
 
+/* =========================
+   GET ALL ENDANGERED SPECIES (NO PAGINATION)
+========================= */
 const getAllEndangeredSpeciesEntry = async (req, res) => {
   try {
-    const species = await Species.find().select('-__v');
+    const species = await Species.find({isVerified:true}).select('-__v');
     return res.status(200).json({
       success: true,
       count: species.length,

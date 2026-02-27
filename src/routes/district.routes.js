@@ -1,3 +1,4 @@
+
 const express = require("express");
 const { sriLankaDistricts } = require("../models/user");
 const auth = require("../middlewares/auth.middleware");
@@ -23,6 +24,7 @@ const router = express.Router();
  *                   items:
  *                     type: string
  */
+
 router.get("/districts", (req, res) => {
   res.json({ districts: sriLankaDistricts });
 });

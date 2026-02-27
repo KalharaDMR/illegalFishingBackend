@@ -1,3 +1,4 @@
+
 const Investigation = require("../models/Investigation");
 const { IllegalReport } = require("../models/IllegalReport");
 const { User } = require("../models/user");
@@ -10,6 +11,7 @@ const fs = require("fs");
    GET ASSIGNED REPORTS DASHBOARD
    For Authorized Person - Shows reports in their district that need investigation
 ========================= */
+
 exports.getAssignedReports = async (req, res) => {
   try {
     const officerDistrict = req.user.district;
@@ -60,6 +62,7 @@ exports.getAssignedReports = async (req, res) => {
    START INVESTIGATION
    Create a new investigation record for a report
 ========================= */
+
 exports.startInvestigation = async (req, res) => {
   try {
     const { reportId } = req.params;
@@ -128,6 +131,7 @@ exports.startInvestigation = async (req, res) => {
    SUBMIT INVESTIGATION (UPDATED)
    Authorized officer submits their findings with SMS notification
 ========================= */
+
 exports.submitInvestigation = async (req, res) => {
   try {
     const { investigationId } = req.params;
@@ -192,6 +196,7 @@ exports.submitInvestigation = async (req, res) => {
     const officer = await User.findById(officerId).select('name email phone');
 
     /* ===== NEW: SEND SMS NOTIFICATIONS ===== */
+    
     let notificationResult = null;
     
     try {
@@ -249,6 +254,7 @@ exports.submitInvestigation = async (req, res) => {
    GET INVESTIGATION DETAILS
    View specific investigation
 ========================= */
+
 exports.getInvestigationDetails = async (req, res) => {
   try {
     const { investigationId } = req.params;
@@ -282,6 +288,7 @@ exports.getInvestigationDetails = async (req, res) => {
    GET MY INVESTIGATIONS (For Authorized Person)
    View all investigations conducted by the officer
 ========================= */
+
 exports.getMyInvestigations = async (req, res) => {
   try {
     const officerId = req.user.userId;
@@ -306,6 +313,7 @@ exports.getMyInvestigations = async (req, res) => {
    GET ALL INVESTIGATIONS (For Admin)
    Admin view all investigations
 ========================= */
+
 exports.getAllInvestigations = async (req, res) => {
   try {
     const { district, status, startDate, endDate } = req.query;
@@ -359,6 +367,7 @@ exports.getAllInvestigations = async (req, res) => {
    GENERATE INVESTIGATION REPORT (PDF)
    Download official investigation report
 ========================= */
+
 exports.generateReportPDF = async (req, res) => {
   try {
     const { investigationId } = req.params;
@@ -396,6 +405,7 @@ exports.generateReportPDF = async (req, res) => {
    GET NOTIFICATION STATUS
    Check SMS delivery status for admin
 ========================= */
+
 exports.getNotificationStatus = async (req, res) => {
   try {
     const { investigationId } = req.params;
@@ -442,6 +452,7 @@ exports.getNotificationStatus = async (req, res) => {
    DELETE INVESTIGATION (Admin Only)
    Permanently remove an investigation
 ========================= */
+
 exports.deleteInvestigation = async (req, res) => {
   try {
     const { investigationId } = req.params;
@@ -475,6 +486,7 @@ exports.deleteInvestigation = async (req, res) => {
    CANCEL INVESTIGATION (Officer only)
    Cancel an investigation before completing it
 ========================= */
+
 exports.cancelInvestigation = async (req, res) => {
   try {
     const { investigationId } = req.params;
@@ -520,6 +532,7 @@ exports.cancelInvestigation = async (req, res) => {
    BULK DELETE (Admin only)
    Delete multiple investigations by IDs
 ========================= */
+
 exports.bulkDeleteInvestigations = async (req, res) => {
   try {
     const { investigationIds } = req.body; // Array of IDs

@@ -1,3 +1,4 @@
+
 const { User } = require("../models/user"); // Updated import
 
 exports.getPendingUsers = async (req, res) => {

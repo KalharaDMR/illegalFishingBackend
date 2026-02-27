@@ -39,6 +39,6 @@ router.delete('/:id',auth,role("ZOOLOGIST"), deleteEndangeredSpeciesEntry);
 // Get species details by location
 router.post('/details-by-location',auth,role("ZOOLOGIST"), getEndangeredSpeciesDetailsByLocation);
 
-router.post("/all",auth,role("ZOOLOGIST"), getAllEndangeredSpeciesEntry);
+router.get('/all',auth,role("ZOOLOGIST"), getAllEndangeredSpeciesEntry);
 
 module.exports = router;

@@ -16,7 +16,7 @@ exports.signup = async (req, res) => {
     let status = "PENDING";
     let evidenceFiles = [];
 
-    if (role === "PUBLIC_USER" || role === "ZOOLOGIST") {
+    if (role === "PUBLIC_USER") {
       status = "APPROVED";
     } else {
       if (!req.files || req.files.length === 0) {

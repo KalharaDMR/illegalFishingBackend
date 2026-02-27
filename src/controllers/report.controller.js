@@ -1,3 +1,4 @@
+
 const { IllegalReport } = require("../models/IllegalReport");
 const { User } = require("../models/user");
 const sendEmail = require("../utils/email.service"); // SendGrid service
@@ -5,6 +6,7 @@ const sendEmail = require("../utils/email.service"); // SendGrid service
 /* =========================
    CREATE REPORT
 ========================= */
+
 exports.createReport = async (req, res) => {
   try {
     const reporterId = req.user.userId;
@@ -129,6 +131,7 @@ Reported By: ${reporter?.name || "User"}
 /* =========================
    GET MY REPORTS
 ========================= */
+
 exports.getMyReports = async (req, res) => {
   try {
     const reports = await IllegalReport.find({
@@ -146,6 +149,7 @@ exports.getMyReports = async (req, res) => {
 /* =========================
    GET MY DISTRICT REPORTS
 ========================= */
+
 exports.getMyDistrictReports = async (req, res) => {
   try {
     const user = await User.findById(req.user.userId);

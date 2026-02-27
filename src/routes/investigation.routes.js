@@ -1,3 +1,4 @@
+
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
@@ -75,6 +76,7 @@ const uploadFields = upload.fields([
 ========================= */
 
 // Get assigned reports dashboard
+
 router.get(
   "/assigned-reports",
   authMiddleware,
@@ -119,6 +121,7 @@ router.get(
 ========================= */
 
 // Get all investigations (admin only)
+
 router.get(
   "/admin/all",
   authMiddleware,
@@ -143,6 +146,7 @@ router.get(
 ========================= */
 
 // Delete investigation (Admin only)
+
 router.delete(
   "/:investigationId",
   authMiddleware,
@@ -211,4 +215,5 @@ module.exports = router;
  *         status:
  *           type: string
  *           enum: [INVESTIGATING, COMPLETED, RESOLVED]
+ * 
  */

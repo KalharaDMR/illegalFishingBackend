@@ -1,3 +1,4 @@
+
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
@@ -17,6 +18,7 @@ const {
 } = require("../controllers/report.controller");
 
 /* -------- Multer Config -------- */
+
 const upload = multer({
   dest: "src/uploads/",
   limits: {
@@ -28,6 +30,7 @@ const upload = multer({
    CREATE REPORT
    POST /api/reports
 ========================= */
+
 router.post(
   "/",
   authMiddleware,
@@ -39,6 +42,7 @@ router.post(
    GET MY REPORTS
    GET /api/reports/my
 ========================= */
+
 router.get(
   "/my",
   authMiddleware,
@@ -49,6 +53,7 @@ router.get(
    GET REPORTS FOR AUTHORIZED PERSON'S DISTRICT
    GET /api/reports/my-district
 ========================= */
+
 router.get(
   "/my-district",
   authMiddleware,
@@ -60,6 +65,7 @@ router.get(
    GET REPORTS BY DISTRICT (ADMIN ONLY)
    GET /api/reports/district/:district
 ========================= */
+
 router.get(
   "/district/:district",
   authMiddleware,
@@ -71,6 +77,7 @@ router.get(
    GET ALL REPORTS (ADMIN ONLY)
    GET /api/reports/all
 ========================= */
+
 router.get(
   "/all",
   authMiddleware,
@@ -82,6 +89,7 @@ router.get(
    GET REPORT STATISTICS
    GET /api/reports/statistics
 ========================= */
+
 router.get(
   "/statistics",
   authMiddleware,
@@ -92,6 +100,7 @@ router.get(
    UPDATE REPORT
    PUT /api/reports/:id
 ========================= */
+
 router.put(
   "/:id",
   authMiddleware,
@@ -102,6 +111,7 @@ router.put(
    DELETE REPORT
    DELETE /api/reports/:id
 ========================= */
+
 router.delete(
   "/:id",
   authMiddleware,

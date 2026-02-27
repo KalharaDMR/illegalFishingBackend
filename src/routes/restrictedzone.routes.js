@@ -1,3 +1,4 @@
+
 const express = require("express");
 const multer = require("multer");
 
@@ -82,6 +83,7 @@ const upload = multer({ storage });
  *       401:
  *         description: Unauthorized
  */
+
 router.post(
   "/",
   authMiddleware,
@@ -110,6 +112,7 @@ router.post(
  *       401:
  *         description: Unauthorized
  */
+
 router.get("/", authMiddleware, getZones);
 
 /**
@@ -160,6 +163,7 @@ router.get("/", authMiddleware, getZones);
  *       401:
  *         description: Unauthorized
  */
+
 router.put(
   "/:id",
   authMiddleware,
@@ -191,6 +195,7 @@ router.put(
  *       401:
  *         description: Unauthorized
  */
+
 router.patch(
   "/:id/deactivate",
   authMiddleware,
@@ -221,6 +226,7 @@ router.patch(
  *       401:
  *         description: Unauthorized
  */
+
 router.delete(
   "/:id",
   authMiddleware,
@@ -242,6 +248,7 @@ router.delete(
  *       401:
  *         description: Unauthorized
  */
+
 router.get(
   "/ai-advisory",
   authMiddleware,
@@ -250,3 +257,4 @@ router.get(
 );
 
 module.exports = router;
+
