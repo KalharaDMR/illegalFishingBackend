@@ -182,7 +182,7 @@ const createEndaneredSpeciesEntry = async (req, res) => {
       threats: Array.isArray(threats) ? threats : [],
       tags: Array.isArray(tags) ? tags : [],
       submittedBy: req.user?.userId || null,
-      isVerified: false
+      isVerified: true
     });
 
 
@@ -447,7 +447,6 @@ const updateEndangeredSpeciesEntry = async (req, res) => {
 const deleteEndangeredSpeciesEntry = async (req, res) => {
   try{
   const species = await Species.findById(req.params.id);
-
   if (!species) {
     return res.status(404).json({ error: "Species not found" });
   }
