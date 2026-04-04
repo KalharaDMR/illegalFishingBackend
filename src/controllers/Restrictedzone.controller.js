@@ -87,8 +87,8 @@ const getZones = async (req, res) => {
   }
 };
 
-const geminiService = require("../services/gemini.service");
 const RestrictedZone = require("../models/restricted.zone");
+const geminiService = require("../services/gemini.service");
 
 const getAIAdvisory = async (req, res) => {
   try {
@@ -96,18 +96,65 @@ const getAIAdvisory = async (req, res) => {
 
     if (!activeZones.length) {
       return res.json({
-        advisory: "No active restricted zones available for analysis.",
+        generatedAt: new Date().toISOString(),
+        zoneCount: 0,
+        activeNowCount: 0,
+        overallRiskLevel: "LOW",
+        executiveSummary: "No active restricted zones available for analysis.",
+        keyConcerns: [],
+        recommendedActions: [],
+        priorityAreas: [],
+        expectedImpact: [],
+        patrolTiming: {
+          highestPriorityWindow: "N/A",
+          notes: "No active zones found.",
+        },
+        zoneAnalysis: [],
       });
     }
 
-    const advisory = await geminiService.generateAdvisory(activeZones);
+    const result = await geminiService.generateAdvisory(activeZones);
 
-    res.json({ advisory });
+    return res.json({
+      generatedAt: result.generatedAt,
+      zoneCount: result.zoneCount,
+      activeNowCount: result.activeNowCount,
+      zoneFacts: result.zoneFacts,
+
+      overallRiskLevel: result.advisory?.overallRiskLevel || "LOW",
+      executiveSummary:
+        result.advisory?.executiveSummary || "No executive summary available.",
+      keyConcerns: result.advisory?.keyConcerns || [],
+      recommendedActions: result.advisory?.recommendedActions || [],
+      priorityAreas: result.advisory?.priorityAreas || [],
+      expectedImpact: result.advisory?.expectedImpact || [],
+      patrolTiming: result.advisory?.patrolTiming || {
+        highestPriorityWindow: "N/A",
+        notes: "",
+      },
+
+      zoneAnalysis: result.zoneFacts.map((z) => ({
+        zoneName: z.zoneName,
+        riskScore: z.preliminaryRiskScore,
+        ecologicalRisk: z.preliminaryRiskLevel,
+        status: z.isCurrentlyActive
+          ? "ACTIVE NOW"
+          : z.isActive
+            ? "ACTIVE"
+            : "INACTIVE",
+        restrictedTime: z.restrictedTime,
+        startDate: z.startDate,
+        endDate: z.endDate,
+        evidenceCount: z.evidenceCount,
+      })),
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("AI advisory error:", error);
+    res.status(500).json({
+      message: error.message || "Failed to generate AI advisory",
+    });
   }
 };
-
 module.exports = {
   createZone,
   updateZone,
