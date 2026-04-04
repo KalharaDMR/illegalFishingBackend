@@ -1,6 +1,9 @@
 const express = require("express");
 const multer = require("multer");
-const { signup, login } = require("../controllers/auth.controller");
+const authMiddleware = require("../middlewares/auth.middleware");
+const authController = require("../controllers/auth.controller");
+
+const { signup, login } = authController;
 
 const router = express.Router();
 
@@ -78,10 +81,7 @@ const upload = multer({ storage });
  *                   type: string
  *                   format: binary
  */
-
-
 router.post("/signup", upload.array("evidence"), signup);
-
 
 /**
  * @swagger
@@ -104,7 +104,6 @@ router.post("/signup", upload.array("evidence"), signup);
  *               password:
  *                 type: string
  */
-
 router.post("/login", login);
 
 module.exports = router;
