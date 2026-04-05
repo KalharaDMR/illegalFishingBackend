@@ -41,8 +41,8 @@ exports.signup = async (req, res) => {
     // Add district only for AUTHORIZED_PERSON
     if (role === "AUTHORIZED_PERSON") {
       if (!district) {
-        return res.status(400).json({ 
-          message: "District is required for AUTHORIZED_PERSON role" 
+        return res.status(400).json({
+          message: "District is required for AUTHORIZED_PERSON role",
         });
       }
       userData.district = district;
@@ -58,7 +58,7 @@ exports.signup = async (req, res) => {
 
     res.status(201).json({
       message: responseMessage,
-      user: role === "AUTHORIZED_PERSON" ? { district: user.district } : {}
+      user: role === "AUTHORIZED_PERSON" ? { district: user.district } : {},
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -75,9 +75,7 @@ exports.login = async (req, res) => {
     }
 
     if (user.status !== "APPROVED") {
-      return res
-        .status(403)
-        .json({ message: "Account not approved yet" });
+      return res.status(403).json({ message: "Account not approved yet" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);

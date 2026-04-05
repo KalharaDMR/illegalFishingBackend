@@ -81,10 +81,7 @@ const upload = multer({ storage });
  *                   type: string
  *                   format: binary
  */
-
-
 router.post("/signup", upload.array("evidence"), signup);
-
 
 /**
  * @swagger
@@ -107,7 +104,6 @@ router.post("/signup", upload.array("evidence"), signup);
  *               password:
  *                 type: string
  */
-
 router.post("/login", login);
 router.get("/profile", auth,role("ZOOLOGIST"), getProfile);
 
