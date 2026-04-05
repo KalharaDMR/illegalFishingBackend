@@ -1,5 +1,7 @@
 const RestrictedZoneService = require("../services/restrictedzone.service");
 const service = RestrictedZoneService;
+const RestrictedZone = require("../models/restricted.zone");
+const geminiService = require("../services/gemini.service");
 
 const validateLocation = (location) => {
   if (!location) {
@@ -87,24 +89,126 @@ const getZones = async (req, res) => {
   }
 };
 
-const geminiService = require("../services/gemini.service");
-const RestrictedZone = require("../models/restricted.zone");
-
 const getAIAdvisory = async (req, res) => {
   try {
-    const activeZones = await RestrictedZone.find({ isActive: true });
+    const { zoneId } = req.query;
 
-    if (!activeZones.length) {
+    let zones = [];
+    let selectedZone = null;
+
+    if (zoneId) {
+      selectedZone = await RestrictedZone.findOne({
+        _id: zoneId,
+        isActive: true,
+      });
+
+      if (!selectedZone) {
+        return res.status(404).json({
+          message: "Selected restricted area not found or inactive.",
+        });
+      }
+
+      zones = [selectedZone];
+    } else {
+      zones = await RestrictedZone.find({ isActive: true });
+    }
+
+    if (!zones.length) {
       return res.json({
-        advisory: "No active restricted zones available for analysis.",
+        generatedAt: new Date().toISOString(),
+        zoneCount: 0,
+        activeNowCount: 0,
+        selectedZoneId: zoneId || "",
+        selectedZoneName: selectedZone?.name || "",
+        overallRiskLevel: "LOW",
+        executiveSummary: "No active restricted zones available for analysis.",
+        keyConcerns: [],
+        recommendedActions: [],
+        priorityAreas: [],
+        expectedImpact: [],
+        patrolTiming: {
+          highestPriorityWindow: "N/A",
+          notes: "No active zones found.",
+        },
+        zoneAnalysis: [],
+        availableZones: [],
       });
     }
 
-    const advisory = await geminiService.generateAdvisory(activeZones);
+    const result = await geminiService.generateAdvisory(
+      zones,
+      selectedZone?.name || null,
+    );
 
-    res.json({ advisory });
+    const zoneAnalysis = result.zoneFacts.map((z) => ({
+      zoneId: z.zoneId,
+      zoneName: z.zoneName,
+      riskScore: z.preliminaryRiskScore,
+      ecologicalRisk: z.preliminaryRiskLevel,
+      status: z.isCurrentlyActive
+        ? "ACTIVE NOW"
+        : z.isActive
+          ? "ACTIVE"
+          : "INACTIVE",
+      restrictedTime: z.restrictedTime,
+      startDate: z.startDate,
+      endDate: z.endDate,
+      evidenceCount: z.evidenceCount,
+    }));
+
+    const allActiveZones = await RestrictedZone.find({ isActive: true });
+
+    const availableZones = allActiveZones.map((zone) => ({
+      zoneId: String(zone._id),
+      zoneName: zone.name,
+    }));
+
+    return res.json({
+      generatedAt: result.generatedAt,
+      zoneCount: result.zoneCount,
+      activeNowCount: result.activeNowCount,
+      selectedZoneId: zoneId || "",
+      selectedZoneName: selectedZone?.name || "",
+      zoneFacts: result.zoneFacts,
+
+      overallRiskLevel: result.advisory?.overallRiskLevel || "LOW",
+      executiveSummary:
+        result.advisory?.executiveSummary || "No executive summary available.",
+      keyConcerns: result.advisory?.keyConcerns || [],
+      recommendedActions: result.advisory?.recommendedActions || [],
+      priorityAreas: result.advisory?.priorityAreas || [],
+      expectedImpact: result.advisory?.expectedImpact || [],
+      patrolTiming: result.advisory?.patrolTiming || {
+        highestPriorityWindow: "N/A",
+        notes: "",
+      },
+
+      zoneAnalysis,
+      availableZones,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("AI advisory error:", error);
+
+    const errorText =
+      error?.message ||
+      error?.error?.message ||
+      "Failed to generate AI advisory";
+
+    if (
+      errorText.includes("Gemini API quota exceeded") ||
+      errorText.includes("429") ||
+      errorText.includes("RESOURCE_EXHAUSTED") ||
+      errorText.toLowerCase().includes("quota")
+    ) {
+      return res.status(429).json({
+        message:
+          "AI advisory is temporarily unavailable because the Gemini API quota has been exceeded. Please try again shortly.",
+      });
+    }
+
+    return res.status(500).json({
+      message: errorText || "Failed to generate AI advisory",
+    });
   }
 };
 
