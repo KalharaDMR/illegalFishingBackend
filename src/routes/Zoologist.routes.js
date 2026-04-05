@@ -22,10 +22,10 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Get all species with pagination
-router.get('/',auth,role("ZOOLOGIST"), getAllEndangeredSpeciesEntryByPagination);
+router.get('/',auth, getAllEndangeredSpeciesEntryByPagination);
 
 // Get nearby endangered species places
-router.post('/nearby',auth,role("ZOOLOGIST"), getNearbyEndangeredSpeciesPlaces);
+router.post('/nearby',auth,getNearbyEndangeredSpeciesPlaces);
 
 // Create species (with image upload and validation)
 router.post('/',auth,role("ZOOLOGIST"), upload.single('evidence'),createEndaneredSpeciesEntry);
@@ -39,6 +39,6 @@ router.delete('/:id',auth,role("ZOOLOGIST"), deleteEndangeredSpeciesEntry);
 // Get species details by location
 router.post('/details-by-location',auth,role("ZOOLOGIST"), getEndangeredSpeciesDetailsByLocation);
 
-router.get('/all',auth,role("ZOOLOGIST"), getAllEndangeredSpeciesEntry);
+router.get('/all',auth, getAllEndangeredSpeciesEntry);
 
 module.exports = router;
