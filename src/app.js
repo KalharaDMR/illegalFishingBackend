@@ -18,11 +18,17 @@ const app = express();
 /* ------------------ MIDDLEWARE ------------------ */
 
 //Proper CORS (important for frontend)
+/* ------------------ MIDDLEWARE ------------------ */
+
+// ✅ FIXED CORS (supports both local + Vercel)
 app.use(
   cors({
-    origin: "http://localhost:3000", // change if frontend uses different port
+    origin: [
+      "http://localhost:3000",
+      "https://illegal-fishing-frontend-6lbmzhw0u-kalharadmrs-projects.vercel.app"
+    ],
     credentials: true,
-  }),
+  })
 );
 
 app.use(express.json());
