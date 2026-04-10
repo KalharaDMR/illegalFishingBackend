@@ -60,7 +60,12 @@ app.use(express.urlencoded({ extended: true }));
 /* ------------------ STATIC FILES ------------------ */
 
 // Serve uploaded files correctly
-app.use("/uploads", express.static("src/uploads"));
+const path = require("path");
+
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "src/uploads"))
+);
 
 /* ------------------ SWAGGER ------------------ */
 
