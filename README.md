@@ -10,18 +10,18 @@ This system is designed with a scalable and modular architecture, ensuring maint
 
 ## 🎯 Key Features
 
-| Feature             | Description                                      |
-| ------------------- | ------------------------------------------------ |
-|  Authentication   | JWT-based authentication with role-based access  |
-|  User Roles       | ADMIN, AUTHORIZED_PERSON, PUBLIC_USER, ZOOLOGIST |
-|  Restricted Zones | Manage protected marine areas                    |
-|  Reports          | Submit and track illegal fishing reports         |
-|  Investigations   | Full CRUD with evidence upload                   |
-|  Species Tracking | Manage endangered marine species                 |
-|  Notifications    | SMS (Twilio) + Email (SendGrid) alerts           |
-|  File Upload      | Images & videos via Multer + Cloudinary          |
-|  PDF Reports      | Generate investigation reports                   |
-|  AI Advisory      | Gemini API for intelligent insights              |
+| Feature          | Description                                      |
+| ---------------- | ------------------------------------------------ |
+| Authentication   | JWT-based authentication with role-based access  |
+| User Roles       | ADMIN, AUTHORIZED_PERSON, PUBLIC_USER, ZOOLOGIST |
+| Restricted Zones | Manage protected marine areas                    |
+| Reports          | Submit and track illegal fishing reports         |
+| Investigations   | Full CRUD with evidence upload                   |
+| Species Tracking | Manage endangered marine species                 |
+| Notifications    | SMS (Twilio) and Email (SendGrid) alerts         |
+| File Upload      | Images and videos via Multer and Cloudinary      |
+| PDF Reports      | Generate investigation reports                   |
+| AI Advisory      | Gemini API for intelligent insights              |
 
 ---
 
@@ -29,7 +29,7 @@ This system is designed with a scalable and modular architecture, ensuring maint
 
 The backend follows a layered architecture:
 
-```id="arch1"
+```text
 Controller → Service Layer → Database (MongoDB)
 ```
 
@@ -57,17 +57,17 @@ Each component contains:
 * **Framework**: Express.js
 * **Database**: MongoDB (Mongoose ODM)
 * **Authentication**: JWT + bcryptjs
-* **API Docs**: Swagger
+* **API Documentation**: Swagger
 * **Testing**: Jest, Supertest, Artillery
 
-### Third-Party Integrations
+### 🔗 Third-Party Integrations
 
-* Twilio → SMS alerts
-* SendGrid → Email notifications
-* Cloudinary → Image storage
-* Multer → File uploads
-* PDFKit → PDF generation
-* Gemini API → AI advisory
+* Twilio – SMS alerts
+* SendGrid – Email notifications
+* Cloudinary – Image storage
+* Multer – File uploads
+* PDFKit – PDF generation
+* Gemini API – AI advisory
 
 ---
 
@@ -76,13 +76,19 @@ Each component contains:
 ### Collections
 
 * Users
+
 * RestrictedZones
+
 * Reports
+
 * Investigations
+
 * Species
 
 * Proper schema validation
+
 * Efficient data modeling
+
 * Relationship handling via references
 
 ---
@@ -92,7 +98,7 @@ Each component contains:
 * JWT Authentication
 * Role-Based Access Control (RBAC)
 * Protected Routes
-* Input Validation & Sanitization
+* Input Validation and Sanitization
 * Centralized Error Handling
 
 ---
@@ -112,14 +118,16 @@ Each component contains:
 
 ### 2. Clone Repository
 
-```bash id="cmd1"
+```bash
 git clone https://github.com/KalharaDMR/illegalFishingBackend
 cd illegalFishingBackend
 ```
 
+---
+
 ### 3. Install Dependencies
 
-```bash id="cmd2"
+```bash
 npm install
 ```
 
@@ -129,7 +137,7 @@ npm install
 
 Create a `.env` file:
 
-```env id="env1"
+```env
 PORT=5000
 NODE_ENV=development
 
@@ -155,7 +163,7 @@ GEMINI_API_KEY=xxx
 
 ### 5. Create Upload Directories
 
-```bash id="cmd3"
+```bash
 mkdir -p src/uploads/investigations/images
 mkdir -p src/uploads/investigations/videos
 mkdir -p src/uploads/reports
@@ -166,7 +174,7 @@ mkdir -p src/uploads/species
 
 ### 6. Run the Server
 
-```bash id="cmd4"
+```bash
 npm start
 ```
 
@@ -174,7 +182,9 @@ npm start
 
 ## 📁 Project Structure
 
-```id="structure"
+The project follows a modular and scalable folder structure to ensure maintainability and separation of concerns:
+
+```plaintext
 illegalFishingBackend/
 ├── src/
 │   ├── config/                      # Configuration files
@@ -189,15 +199,15 @@ illegalFishingBackend/
 │   │   ├── Species.model.js         # Endangered species model
 │   │   └── restricted.zone.js       # Restricted zone model
 │   │
-│   ├── controllers/                # Request handling & business logic
-│   │   ├── auth.controller.js       # Authentication logic
-│   │   ├── admin.controller.js      # Admin operations
-│   │   ├── report.controller.js     # Report management
-│   │   ├── investigation.controller.js # Investigation CRUD operations
-│   │   ├── Zoologist.controller.js  # Species management
-│   │   └── Restrictedzone.controller.js # Zone management
+│   ├── controllers/                 # Request handling & business logic
+│   │   ├── auth.controller.js
+│   │   ├── admin.controller.js
+│   │   ├── report.controller.js
+│   │   ├── investigation.controller.js
+│   │   ├── Zoologist.controller.js
+│   │   └── Restrictedzone.controller.js
 │   │
-│   ├── routes/                     # API route definitions
+│   ├── routes/                      # API route definitions
 │   │   ├── auth.routes.js
 │   │   ├── admin.routes.js
 │   │   ├── report.routes.js
@@ -205,32 +215,32 @@ illegalFishingBackend/
 │   │   ├── Zoologist.routes.js
 │   │   └── restrictedzone.routes.js
 │   │
-│   ├── services/                   # External services & integrations
-│   │   ├── twilio.service.js       # SMS notifications (Twilio)
-│   │   ├── notification.service.js # Notification logic
-│   │   ├── email.service.js        # Email service (SendGrid)
-│   │   └── pdf.service.js          # PDF generation
+│   ├── services/                    # External services & integrations
+│   │   ├── twilio.service.js
+│   │   ├── notification.service.js
+│   │   ├── email.service.js
+│   │   └── pdf.service.js
 │   │
-│   ├── middleware/                # Custom middleware
-│   │   ├── auth.middleware.js      # JWT authentication
-│   │   └── role.middleware.js      # Role-based authorization
+│   ├── middleware/                  # Custom middleware
+│   │   ├── auth.middleware.js
+│   │   └── role.middleware.js
 │   │
-│   ├── utils/                     # Utility/helper functions
-│   │   ├── jwt.js                 # JWT token utilities
-│   │   └── geoUtils.js            # Geolocation calculations
+│   ├── utils/                       # Utility/helper functions
+│   │   ├── jwt.js
+│   │   └── geoUtils.js
 │   │
-│   ├── uploads/                   # Uploaded files storage
+│   ├── uploads/                     # Uploaded files storage
 │   │   ├── investigations/
 │   │   │   ├── images/
 │   │   │   └── videos/
 │   │   └── reports/
 │   │
-│   ├── app.js                     # Express application setup
-│   └── server.js                  # Server entry point
+│   ├── app.js
+│   └── server.js
 │
-├── .env                           # Environment variables
-├── package.json                   # Project dependencies
-└── README.md                      # Project documentation
+├── .env
+├── package.json
+└── README.md
 ```
 
 * Clean modular structure
@@ -241,11 +251,8 @@ illegalFishingBackend/
 
 ## 📄 API Documentation
 
-API Documentation available at:
-
-```id="swagger"
+API documentation available at:
 [Illegal Fishing Backend API Docs](https://ramesh-kalhara-s-team.docs.buildwithfern.com/illegal-fishing-backend/get-all-species)
-```
 
 Includes:
 
@@ -259,9 +266,7 @@ Includes:
 
 ### 1. Unit Testing (Jest)
 
-* Tests individual services and logic
-
-```bash id="test1"
+```bash
 npm run test:unit
 ```
 
@@ -269,9 +274,7 @@ npm run test:unit
 
 ### 2. Integration Testing (Supertest)
 
-* Tests API endpoints with database
-
-```bash id="test2"
+```bash
 npm run test:int
 ```
 
@@ -279,15 +282,16 @@ npm run test:int
 
 ### 3. Performance Testing (Artillery)
 
-* Load testing under concurrent users
-
-```bash id="test3"
+```bash
 npm run test:perf
 ```
 
-✔ Handles ~50 concurrent users
-✔ Expected latency < 200ms
+Expected:
 
+* Handles ~50 concurrent users
+* Latency < 200ms
+
+---
 
 ## 🚀 Deployment
 
@@ -302,8 +306,15 @@ npm run test:perf
 3. Configure environment variables
 4. Deploy
 
-### Live URLs
+### Live URL
 
 [Deployed Backend API](https://illegalfishingbackend-production.up.railway.app)
+
 ---
 
+## 👥 Contribution
+
+* Team-based modular development
+* Proper Git workflow maintained
+
+---
