@@ -58,7 +58,7 @@ Each component contains:
 * **Database**: MongoDB (Mongoose ODM)
 * **Authentication**: JWT + bcryptjs
 * **API Docs**: Swagger
-* **Testing**: Jest, Supertest, Artillery, Playwright
+* **Testing**: Jest, Supertest, Artillery
 
 ### Third-Party Integrations
 
@@ -241,10 +241,10 @@ illegalFishingBackend/
 
 ## 📄 API Documentation
 
-Swagger UI available at:
+API Documentation available at:
 
 ```id="swagger"
-http://localhost:5000/api-docs
+[Illegal Fishing Backend API Docs](https://ramesh-kalhara-s-team.docs.buildwithfern.com/illegal-fishing-backend/get-all-species)
 ```
 
 Includes:
@@ -293,7 +293,7 @@ npm run test:perf
 
 ### Backend Hosting
 
-* Platform: Render / Railway
+* Platform: Railway
 
 ### Steps
 
@@ -302,17 +302,8 @@ npm run test:perf
 3. Configure environment variables
 4. Deploy
 
-### Live API
+### Live URLs
 
-```id="live"
-<your-backend-url>
-```
-
+[Deployed Backend API](https://illegalfishingbackend-production.up.railway.app)
 ---
 
-
-## 👥 Contribution
-
-* Team-based modular development
-* Each member handled a component
-* Proper Git workflow maintained
