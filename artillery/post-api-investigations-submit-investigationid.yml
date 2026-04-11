@@ -1,0 +1,32 @@
+# POST /api/investigations/submit/:investigationId — multipart
+# Requires: PERF_TOKEN_AUTHORIZED_PERSON, PERF_INVESTIGATION_ID
+
+config:
+  target: "http://localhost:5000"
+  http:
+    timeout: 60
+
+  phases:
+    - duration: 30
+      arrivalRate: 3
+      name: "steady"
+  plugins:
+    ensure: {}
+  ensure:
+    thresholds:
+      - http.response_time.p95: 15000
+      - http.response_time.p99: 25000
+scenarios:
+  - name: "POST /api/investigations/submit/:investigationId"
+    flow:
+      - post:
+          url: "/api/investigations/submit/{{ $environment.PERF_INVESTIGATION_ID }}"
+          headers:
+            Authorization: "Bearer {{ $environment.PERF_TOKEN_AUTHORIZED_PERSON }}"
+          formData:
+            visited: "true"
+            actualSituation: "Performance test visit notes here."
+            illegalActivityFound: "false"
+            actionTaken: "NO_ACTION"
+            visitDate: "2026-04-11"
+            visitTime: "14:00"

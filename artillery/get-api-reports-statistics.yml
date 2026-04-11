@@ -1,0 +1,25 @@
+# GET /api/reports/statistics
+# Requires: PERF_TOKEN_PUBLIC_USER
+
+config:
+  target: "http://localhost:5000"
+  http:
+    timeout: 60
+
+  phases:
+    - duration: 30
+      arrivalRate: 3
+      name: "steady"
+  plugins:
+    ensure: {}
+  ensure:
+    thresholds:
+      - http.response_time.p95: 15000
+      - http.response_time.p99: 25000
+scenarios:
+  - name: "GET /api/reports/statistics"
+    flow:
+      - get:
+          url: "/api/reports/statistics"
+          headers:
+            Authorization: "Bearer {{ $environment.PERF_TOKEN_PUBLIC_USER }}"

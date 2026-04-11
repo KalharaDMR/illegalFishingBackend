@@ -1,0 +1,28 @@
+# POST /api/auth/login
+# Requires: PERF_LOGIN_EMAIL, PERF_LOGIN_PASSWORD
+
+config:
+  target: "http://localhost:5000"
+  http:
+    timeout: 60
+
+  phases:
+    - duration: 30
+      arrivalRate: 3
+      name: "steady"
+  plugins:
+    ensure: {}
+  ensure:
+    thresholds:
+      - http.response_time.p95: 15000
+      - http.response_time.p99: 25000
+scenarios:
+  - name: "POST /api/auth/login"
+    flow:
+      - post:
+          url: "/api/auth/login"
+          headers:
+            Content-Type: "application/json"
+          json:
+            email: "{{ $environment.PERF_LOGIN_EMAIL }}"
+            password: "{{ $environment.PERF_LOGIN_PASSWORD }}"

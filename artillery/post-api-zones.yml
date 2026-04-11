@@ -1,0 +1,31 @@
+# POST /api/zones — multipart
+# Requires: PERF_TOKEN_AUTHORIZED_PERSON
+
+config:
+  target: "http://localhost:5000"
+  http:
+    timeout: 60
+
+  phases:
+    - duration: 30
+      arrivalRate: 3
+      name: "steady"
+  plugins:
+    ensure: {}
+  ensure:
+    thresholds:
+      - http.response_time.p95: 15000
+      - http.response_time.p99: 25000
+scenarios:
+  - name: "POST /api/zones"
+    flow:
+      - post:
+          url: "/api/zones"
+          headers:
+            Authorization: "Bearer {{ $environment.PERF_TOKEN_AUTHORIZED_PERSON }}"
+          formData:
+            name: "Perf Zone"
+            location: '{"lat":8.3,"lng":80.4}'
+            startDate: "2026-04-01"
+            endDate: "2026-12-31"
+            restrictedTime: "All Day"

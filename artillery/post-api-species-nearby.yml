@@ -1,0 +1,30 @@
+# POST /api/species/nearby
+# Requires: PERF_TOKEN_PUBLIC_USER
+
+config:
+  target: "http://localhost:5000"
+  http:
+    timeout: 60
+
+  phases:
+    - duration: 30
+      arrivalRate: 3
+      name: "steady"
+  plugins:
+    ensure: {}
+  ensure:
+    thresholds:
+      - http.response_time.p95: 15000
+      - http.response_time.p99: 25000
+scenarios:
+  - name: "POST /api/species/nearby"
+    flow:
+      - post:
+          url: "/api/species/nearby"
+          headers:
+            Content-Type: "application/json"
+            Authorization: "Bearer {{ $environment.PERF_TOKEN_PUBLIC_USER }}"
+          json:
+            longitude: 80.12
+            latitude: 6.95
+            maxDistance: 50000

@@ -1,0 +1,33 @@
+# Reference: set these in .env (loaded by: npx dotenv -e .env -- npx artillery run artillery/<file>.yml)
+# Obtain JWTs by logging in as each role (Postman/curl) and paste the token value.
+
+# --- Shared ---
+# PERF_LOGIN_EMAIL=
+# PERF_LOGIN_PASSWORD=
+# PERF_SIGNUP_PASSWORD=          # used by post-api-auth-signup.yml (choose a strong test password)
+
+# Role tokens (paste full JWT string, no "Bearer " prefix)
+# PERF_TOKEN_PUBLIC_USER=
+# PERF_TOKEN_ADMIN=
+# PERF_TOKEN_AUTHORIZED_PERSON=
+# PERF_TOKEN_ZOOLOGIST=
+
+# Generic read token for investigation detail/pdf (admin or officer as appropriate for your data)
+# PERF_TOKEN_INVESTIGATION_READ=
+
+# --- IDs / params (MongoDB ObjectIds as strings, or district name) ---
+# PERF_PENDING_USER_ID=
+# PERF_REJECT_USER_ID=
+# PERF_DELETE_USER_ID=
+# PERF_REPORT_ID=
+# PERF_INVESTIGATION_ID=
+# PERF_INVESTIGATION_ID_CANCEL=
+# PERF_ZONE_ID=
+# PERF_SPECIES_ID=
+# PERF_DISTRICT_NAME=Galle
+
+# --- Password change perf test (optional; mutates the public user password) ---
+# PERF_CURRENT_PASSWORD=
+# PERF_NEW_PASSWORD=
+
+# Regenerate YAML from routes: node scripts/generate-artillery-configs.js

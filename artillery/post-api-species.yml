@@ -1,0 +1,33 @@
+# POST /api/species — ZOOLOGIST multipart
+# Requires: PERF_TOKEN_ZOOLOGIST
+
+config:
+  target: "http://localhost:5000"
+  http:
+    timeout: 60
+
+  phases:
+    - duration: 30
+      arrivalRate: 3
+      name: "steady"
+  plugins:
+    ensure: {}
+  ensure:
+    thresholds:
+      - http.response_time.p95: 15000
+      - http.response_time.p99: 25000
+scenarios:
+  - name: "POST /api/species"
+    flow:
+      - post:
+          url: "/api/species"
+          headers:
+            Authorization: "Bearer {{ $environment.PERF_TOKEN_ZOOLOGIST }}"
+          formData:
+            fishes: '[{"scientificName":"Perf Sp.","localName":"Perf","conservationStatus":"Vulnerable"}]'
+            description: "Performance test species description text here."
+            location: '{"coordinates":[80.12,6.95],"address":"Test"}'
+            threats: '["habitat loss"]'
+            tags: '["perf"]'
+            evidence:
+              fromFile: "artillery/fixtures/tiny.png"

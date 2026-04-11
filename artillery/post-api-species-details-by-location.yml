@@ -1,0 +1,29 @@
+# POST /api/species/details-by-location
+# Requires: PERF_TOKEN_ZOOLOGIST
+
+config:
+  target: "http://localhost:5000"
+  http:
+    timeout: 60
+
+  phases:
+    - duration: 30
+      arrivalRate: 3
+      name: "steady"
+  plugins:
+    ensure: {}
+  ensure:
+    thresholds:
+      - http.response_time.p95: 15000
+      - http.response_time.p99: 25000
+scenarios:
+  - name: "POST /api/species/details-by-location"
+    flow:
+      - post:
+          url: "/api/species/details-by-location"
+          headers:
+            Content-Type: "application/json"
+            Authorization: "Bearer {{ $environment.PERF_TOKEN_ZOOLOGIST }}"
+          json:
+            location:
+              coordinates: [80.12, 6.95]
