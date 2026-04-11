@@ -1,0 +1,25 @@
+# PATCH /api/zones/:id/deactivate
+# Requires: PERF_TOKEN_AUTHORIZED_PERSON, PERF_ZONE_ID
+
+config:
+  target: "http://localhost:5000"
+  http:
+    timeout: 60
+
+  phases:
+    - duration: 30
+      arrivalRate: 3
+      name: "steady"
+  plugins:
+    ensure: {}
+  ensure:
+    thresholds:
+      - http.response_time.p95: 15000
+      - http.response_time.p99: 25000
+scenarios:
+  - name: "PATCH /api/zones/:id/deactivate"
+    flow:
+      - patch:
+          url: "/api/zones/{{ $environment.PERF_ZONE_ID }}/deactivate"
+          headers:
+            Authorization: "Bearer {{ $environment.PERF_TOKEN_AUTHORIZED_PERSON }}"

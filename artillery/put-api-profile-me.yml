@@ -1,0 +1,28 @@
+# PUT /api/profile/me
+# Requires: PERF_TOKEN_AUTHORIZED_PERSON
+
+config:
+  target: "http://localhost:5000"
+  http:
+    timeout: 60
+
+  phases:
+    - duration: 30
+      arrivalRate: 3
+      name: "steady"
+  plugins:
+    ensure: {}
+  ensure:
+    thresholds:
+      - http.response_time.p95: 15000
+      - http.response_time.p99: 25000
+scenarios:
+  - name: "PUT /api/profile/me"
+    flow:
+      - put:
+          url: "/api/profile/me"
+          headers:
+            Content-Type: "application/json"
+            Authorization: "Bearer {{ $environment.PERF_TOKEN_AUTHORIZED_PERSON }}"
+          json:
+            name: "Perf Officer"

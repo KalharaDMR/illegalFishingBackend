@@ -1,0 +1,25 @@
+# PUT /api/admin/approve/:id
+# Requires: PERF_TOKEN_ADMIN, PERF_PENDING_USER_ID
+
+config:
+  target: "http://localhost:5000"
+  http:
+    timeout: 60
+
+  phases:
+    - duration: 30
+      arrivalRate: 3
+      name: "steady"
+  plugins:
+    ensure: {}
+  ensure:
+    thresholds:
+      - http.response_time.p95: 15000
+      - http.response_time.p99: 25000
+scenarios:
+  - name: "PUT /api/admin/approve/:id"
+    flow:
+      - put:
+          url: "/api/admin/approve/{{ $environment.PERF_PENDING_USER_ID }}"
+          headers:
+            Authorization: "Bearer {{ $environment.PERF_TOKEN_ADMIN }}"

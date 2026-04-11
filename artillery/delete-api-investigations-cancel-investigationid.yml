@@ -1,0 +1,25 @@
+# DELETE /api/investigations/cancel/:investigationId
+# Requires: PERF_TOKEN_AUTHORIZED_PERSON, PERF_INVESTIGATION_ID_CANCEL
+
+config:
+  target: "http://localhost:5000"
+  http:
+    timeout: 60
+
+  phases:
+    - duration: 30
+      arrivalRate: 3
+      name: "steady"
+  plugins:
+    ensure: {}
+  ensure:
+    thresholds:
+      - http.response_time.p95: 15000
+      - http.response_time.p99: 25000
+scenarios:
+  - name: "DELETE /api/investigations/cancel/:investigationId"
+    flow:
+      - delete:
+          url: "/api/investigations/cancel/{{ $environment.PERF_INVESTIGATION_ID_CANCEL }}"
+          headers:
+            Authorization: "Bearer {{ $environment.PERF_TOKEN_AUTHORIZED_PERSON }}"

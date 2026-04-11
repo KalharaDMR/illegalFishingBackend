@@ -109,24 +109,22 @@ router.get(
   getMyInvestigations
 );
 
-// Get specific investigation details
-router.get(
-  "/:investigationId",
-  authMiddleware,
-  getInvestigationDetails
-);
-
 /* =========================
-   ADMIN ROUTES
+   ADMIN ROUTES (must be before "/:investigationId" or "admin" is captured as an id)
 ========================= */
-
-// Get all investigations (admin only)
 
 router.get(
   "/admin/all",
   authMiddleware,
   roleMiddleware("ADMIN"),
   getAllInvestigations
+);
+
+// Get specific investigation details
+router.get(
+  "/:investigationId",
+  authMiddleware,
+  getInvestigationDetails
 );
 
 // Generate PDF report
